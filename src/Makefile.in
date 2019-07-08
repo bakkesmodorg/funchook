@@ -9,6 +9,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@ @PIC_CFLAGS@ -g -I. -I$(top_srcdir)/include -I$(DISTORM3_DIR)/include
 LIBS = @LIBS@
 LINK_SHARED = @LINK_SHARED@
+LINK_STATIC = @LINK_STATIC@
 
 @IF_WIN32@LIBS += -lpsapi
 @IF_OSX@LDFLAGS += -install_name @rpath/libfunchook.dylib
@@ -43,13 +44,16 @@ HEADERS = \
 
 OBJS = $(FUNCHOOK_OBJS) $(DISTORM3_OBJS)
 
-all: @LIBFUNCHOOK_SO@
+all: @LIBFUNCHOOK_A@ @LIBFUNCHOOK_SO@
 
 check:
 	cd ../test && $(MAKE) check
 
 @LIBFUNCHOOK_SO@: $(OBJS)
 	$(LINK_SHARED) $(LDFLAGS) -o @LIBFUNCHOOK_SO@ $(OBJS) $(LIBS)
+
+@LIBFUNCHOOK_A@: $(OBJS)
+	$(LINK_STATIC) @LIBFUNCHOOK_A@ $(OBJS)
 
 funchook.o: funchook.c $(HEADERS)
 funchook_linux.o: funchook_linux.c $(HEADERS)
@@ -64,7 +68,7 @@ insts.o: insts.c
 	$(CC) $(CFLAGS) -c -o $@ $< -Wno-missing-braces
 
 clean:
-	$(RM) @LIBFUNCHOOK_SO@ $(OBJS)
+	$(RM) @LIBFUNCHOOK_A@ @LIBFUNCHOOK_SO@ $(OBJS)
 
 Makefile config.h: $(srcdir)/Makefile.in $(srcdir)/config.h.in $(top_builddir)/config.status
 	cd $(top_builddir) && ./config.status
